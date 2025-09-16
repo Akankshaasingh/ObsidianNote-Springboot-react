@@ -20,6 +20,9 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ReminderService reminderService;
+
     // Simple method to get current user from token
     private User getCurrentUser(String token) {
         if (token != null && token.startsWith("simple_")) {
@@ -66,8 +69,9 @@ public class NoteService {
         }
 
         LocalDateTime now = LocalDateTime.now();
+        boolean isNewNote = note.getNoteId() == null;
 
-        if (note.getNoteId() == null) {
+        if (isNewNote) {
             // New note
             note.setUser(currentUser);
             note.setCreatedAt(now);
@@ -90,7 +94,18 @@ public class NoteService {
             note.setLastAccessed(now);
         }
 
-        return noteRepository.save(note);
+        Note savedNote = noteRepository.save(note);
+
+        // Auto-create reminders for new notes
+        if (isNewNote) {
+            try {
+                reminderService.createAutoReminders(savedNote);
+            } catch (Exception e) {
+                System.err.println("Failed to create auto reminders: " + e.getMessage());
+            }
+        }
+
+        return savedNote;
     }
 
     public void deleteNote(Integer id, String token) {

@@ -33,7 +33,8 @@ public class Reminder {
 	private LocalDateTime sentAt;
 
 	// Constructors
-	public Reminder() {}
+	public Reminder() {
+	}
 
 	public Reminder(Note note, LocalDateTime reminderTime, String message) {
 		this.note = note;
